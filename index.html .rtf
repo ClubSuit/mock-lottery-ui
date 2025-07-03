@@ -1,0 +1,256 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+  <meta charset="UTF-8">\
+  <title>Mock Lottery Betting UI</title>\
+  <style>\
+    body \{\
+      font-family: Arial, sans-serif;\
+      background-color: #f2f2f2;\
+      padding: 20px;\
+      text-align: center;\
+    \}\
+    h1 \{\
+      color: #333;\
+    \}\
+    .lotto-grid \{\
+      display: grid;\
+      grid-template-columns: repeat(10, 40px);\
+      gap: 10px;\
+      justify-content: center;\
+      margin: 20px 0;\
+    \}\
+    .number-btn \{\
+      padding: 10px;\
+      background-color: #fff;\
+      border: 1px solid #ccc;\
+      border-radius: 5px;\
+      cursor: pointer;\
+      font-weight: bold;\
+    \}\
+    .number-btn.selected \{\
+      background-color: #4caf50;\
+      color: #fff;\
+    \}\
+    .bet-button \{\
+      padding: 10px 20px;\
+      background-color: #2196f3;\
+      color: white;\
+      border: none;\
+      border-radius: 5px;\
+      cursor: pointer;\
+      font-size: 16px;\
+      margin: 5px;\
+    \}\
+    .result \{\
+      margin-top: 20px;\
+      font-size: 18px;\
+      color: #444;\
+    \}\
+    .history, .stats \{\
+      margin-top: 30px;\
+      text-align: left;\
+      max-width: 600px;\
+      margin-left: auto;\
+      margin-right: auto;\
+      background: #fff;\
+      padding: 15px;\
+      border-radius: 8px;\
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);\
+    \}\
+    .history h2, .stats h2 \{\
+      font-size: 20px;\
+      margin-bottom: 10px;\
+    \}\
+    .history-entry \{\
+      border-bottom: 1px solid #ddd;\
+      padding: 5px 0;\
+    \}\
+    #countdown \{\
+      font-size: 20px;\
+      margin-top: 10px;\
+      color: #d32f2f;\
+    \}\
+  </style>\
+</head>\
+<body>\
+  <h1>\uc0\u55356 \u57266  Mock Lottery Bet Simulator</h1>\
+  <div class="lotto-grid" id="numberGrid"></div>\
+  <button class="bet-button" onclick="placeBet()">Place Bet</button>\
+  <button class="bet-button" onclick="clearHistory()">Clear History</button>\
+  <button class="bet-button" onclick="downloadHistory()">Download CSV</button>\
+  <button class="bet-button" onclick="startAutoplay()">Start Autoplay</button>\
+  <button class="bet-button" onclick="stopAutoplay()">Stop Autoplay</button>\
+  <button class="bet-button" onclick="suggestNumbers()">AI Suggest Numbers</button>\
+\
+  <div id="countdown"></div>\
+  <div class="result" id="result"></div>\
+  <div class="result" id="winning"></div>\
+\
+  <div class="history" id="history">\
+    <h2>\uc0\u55357 \u56540  Bet History</h2>\
+  </div>\
+\
+  <div class="stats" id="stats">\
+    <h2>\uc0\u55357 \u56522  Stats Dashboard</h2>\
+    <p id="mostFrequent">Most Frequent Numbers: </p>\
+    <p id="profitLoss">\uc0\u55357 \u56496  Profit/Loss: $0</p>\
+  </div>\
+\
+  <script>\
+    const selectedNumbers = new Set();\
+    const maxNumbers = 5;\
+    const historyData = [];\
+    const frequencyMap = new Map();\
+    let autoplayInterval;\
+    let countdown = 2;\
+    let countdownInterval;\
+    let balance = 0;\
+    const betAmount = 10;\
+\
+    function createGrid() \{\
+      const grid = document.getElementById('numberGrid');\
+      for (let i = 1; i <= 50; i++) \{\
+        const btn = document.createElement('button');\
+        btn.textContent = i;\
+        btn.classList.add('number-btn');\
+        btn.addEventListener('click', () => toggleNumber(btn, i));\
+        grid.appendChild(btn);\
+      \}\
+    \}\
+\
+    function toggleNumber(btn, number) \{\
+      if (selectedNumbers.has(number)) \{\
+        selectedNumbers.delete(number);\
+        btn.classList.remove('selected');\
+      \} else \{\
+        if (selectedNumbers.size >= maxNumbers) return;\
+        selectedNumbers.add(number);\
+        btn.classList.add('selected');\
+      \}\
+    \}\
+\
+    function generateWinningNumbers() \{\
+      const pool = Array.from(\{ length: 50 \}, (_, i) => i + 1);\
+      const shuffled = pool.sort(() => 0.5 - Math.random());\
+      return shuffled.slice(0, maxNumbers);\
+    \}\
+\
+    function placeBet(selected = Array.from(selectedNumbers)) \{\
+      if (selected.length !== maxNumbers) \{\
+        alert(`Please select $\{maxNumbers\} numbers.`);\
+        return;\
+      \}\
+      const winning = generateWinningNumbers();\
+      const matched = selected.filter(num => winning.includes(num));\
+\
+      document.getElementById('result').textContent = `\uc0\u9989  You placed a bet with numbers: $\{selected.join(', ')\}`;\
+      document.getElementById('winning').textContent = `\uc0\u55356 \u57225  Winning numbers: $\{winning.join(', ')\} | Matches: $\{matched.length\}`;\
+\
+      let winAmount = 0;\
+      if (matched.length === maxNumbers) winAmount = 1000;\
+      else if (matched.length === 4) winAmount = 200;\
+      else if (matched.length === 3) winAmount = 50;\
+      else if (matched.length === 2) winAmount = 20;\
+\
+      balance += winAmount - betAmount;\
+      document.getElementById('profitLoss').textContent = `\uc0\u55357 \u56496  Profit/Loss: $$\{balance\}`;\
+\
+      logHistory(selected, winning, matched.length, winAmount);\
+      updateStats(winning);\
+\
+      if (matched.length === maxNumbers) \{\
+        alert("\uc0\u55358 \u56593  JACKPOT! You matched all numbers!");\
+      \} else if (matched.length > 0) \{\
+        alert(`\uc0\u55358 \u56691  You matched $\{matched.length\} number(s)!`);\
+      \} else \{\
+        alert("\uc0\u55357 \u56897  No matches. Better luck next time!");\
+      \}\
+    \}\
+\
+    function logHistory(selected, winning, matchCount, winAmount) \{\
+      const history = document.getElementById('history');\
+      const entry = document.createElement('div');\
+      entry.classList.add('history-entry');\
+      const entryText = `<strong>Bet:</strong> $\{selected.join(', ')\} | <strong>Winning:</strong> $\{winning.join(', ')\} | <strong>Matched:</strong> $\{matchCount\} | <strong>Win:</strong> $$\{winAmount\}`;\
+      entry.innerHTML = entryText;\
+      history.appendChild(entry);\
+      historyData.push(\{ bet: selected, winning: winning, matched: matchCount, win: winAmount \});\
+    \}\
+\
+    function clearHistory() \{\
+      const history = document.getElementById('history');\
+      history.innerHTML = '<h2>\uc0\u55357 \u56540  Bet History</h2>';\
+      historyData.length = 0;\
+      frequencyMap.clear();\
+      balance = 0;\
+      document.getElementById('profitLoss').textContent = `\uc0\u55357 \u56496  Profit/Loss: $0`;\
+      updateStats([]);\
+    \}\
+\
+    function downloadHistory() \{\
+      if (historyData.length === 0) return alert("No history to download.");\
+      let csv = "Bet,Winning,Matched,Win\\n";\
+      historyData.forEach(row => \{\
+        csv += `$\{row.bet.join(' ')\},$\{row.winning.join(' ')\},$\{row.matched\},$\{row.win\}\\n`;\
+      \});\
+      const blob = new Blob([csv], \{ type: 'text/csv' \});\
+      const url = URL.createObjectURL(blob);\
+      const a = document.createElement('a');\
+      a.href = url;\
+      a.download = 'lottery_history.csv';\
+      document.body.appendChild(a);\
+      a.click();\
+      document.body.removeChild(a);\
+    \}\
+\
+    function updateStats(winning) \{\
+      winning.forEach(num => \{\
+        frequencyMap.set(num, (frequencyMap.get(num) || 0) + 1);\
+      \});\
+      const sorted = Array.from(frequencyMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);\
+      const mostFrequent = sorted.map(([num]) => num).join(', ');\
+      document.getElementById('mostFrequent').textContent = `Most Frequent Numbers: $\{mostFrequent\}`;\
+    \}\
+\
+    function startAutoplay() \{\
+      if (autoplayInterval) return;\
+      countdown = 2;\
+      document.getElementById('countdown').textContent = `Next bet in $\{countdown\} seconds...`;\
+      countdownInterval = setInterval(() => \{\
+        countdown--;\
+        document.getElementById('countdown').textContent = `Next bet in $\{countdown\} seconds...`;\
+        if (countdown <= 0) \{\
+          const autoNumbers = Array.from(\{ length: 50 \}, (_, i) => i + 1).sort(() => 0.5 - Math.random()).slice(0, maxNumbers);\
+          placeBet(autoNumbers);\
+          countdown = 2;\
+        \}\
+      \}, 1000);\
+    \}\
+\
+    function stopAutoplay() \{\
+      clearInterval(countdownInterval);\
+      clearInterval(autoplayInterval);\
+      autoplayInterval = null;\
+      document.getElementById('countdown').textContent = '';\
+    \}\
+\
+    function suggestNumbers() \{\
+      const suggested = Array.from(\{ length: 50 \}, (_, i) => i + 1)\
+        .sort((a, b) => (frequencyMap.get(b) || 0) - (frequencyMap.get(a) || 0))\
+        .slice(0, maxNumbers);\
+      alert(`\uc0\u55358 \u56598  AI Suggested Numbers: $\{suggested.join(', ')\}`);\
+    \}\
+\
+    createGrid();\
+  </script>\
+</body>\
+</html>\
+}
